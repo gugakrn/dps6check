@@ -1,10 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>DPS6 Check</title>
+<meta charset="UTF-8">
+<title>DPS6Check</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f4f4;
+        color: #111;
+        max-width: 720px;
+        margin: auto;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    h2 {
+        text-align: center;
+        font-size: 14px;
+        color: #555;
+        margin-top: 0;
+    }
+    hr {
+        margin: 20px 0;
+    }
+    label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        margin-top: 5px;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #ccc;
+    }
+    .footer {
+        font-size: 12px;
+        color: #666;
+        margin-top: 30px;
+        text-align: center;
+    }
+</style>
 </head>
+
 <body>
-<h1>DPS6Check - Online</h1>
-<p>hello world...</p>
+
+<h1>DPS6Check</h1>
+<h2>DPS6 Clutch Health Orientation Tool</h2>
+
+<hr>
+
+<label>Clutch A Touch / Kiss Point</label>
+<input type="number" id="clutchA" placeholder="Example: 9.5" step="0.1">
+
+<label>Clutch B Touch / Kiss Point</label>
+<input type="number" id="clutchB" placeholder="Example: 9.8" step="0.1">
+
+<label>Clutch Slip (RPM)</label>
+<input type="number" id="slip" placeholder="Example: 120">
+
+<label>TCM Temperature (°C)</label>
+<input type="number" id="temp" placeholder="Example: 75">
+
+<button onclick="calculate()">CHECK STATUS</button>
+
+<div id="result" class="result"></div>
+
+<div class="footer">
+    This tool provides an orientation only.<br>
+    It does NOT replace professional diagnosis.<br><br>
+    DPS6Check.com
+</div>
+
+<script>
+function calculate() {
+    let a = parseFloat(document.getElementById("clutchA").value);
+    let b = parseFloat(document.getElementById("clutchB").value);
+    let slip = parseFloat(document.getElementById("slip").value);
+    let temp = parseFloat(document.getElementById("temp").value);
+
+    if (isNaN(a) || isNaN(b) || isNaN(slip) || isNaN(temp)) {
+        document.getElementById("result").innerHTML =
+            "<b>Please fill in all fields.</b>";
+        return;
+    }
+
+    let score = 0;
+
+    // Touch points
+    if (a < 8 || b < 8) score += 0;
+    else if (a < 10 && b < 10) score += 1;
+    else score += 2;
+
+    // Slip
+    if (slip < 150) score += 0;
+    else if (slip < 300) score += 1;
+    else score += 2;
+
+    // Temperature
+    if (temp < 85) score += 0;
+    else if (temp < 100) score += 1;
+    else score += 2;
+
+    let message = "";
+
+    if (score <= 1) {
+        message = "<b>Status:</b> Healthy<br>Clutch behavior within expected range.";
+    } else if (score <= 3) {
+        message = "<b>Status:</b> Moderate Wear<br>Monitor values and driving behavior.";
+    } else {
+        message = "<b>Status:</b> High Wear Risk<br>Values indicate accelerated clutch wear.";
+    }
+
+    document.getElementById("result").innerHTML = message;
+}
+</script>
+
 </body>
 </html>
+
