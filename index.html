@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DPS6Check</title>
+  <style>
+    :root {
+      --maxw: 980px;
+      --border: #cfcfcf;
+      --text: #111;
+      --muted: #666;
+      --bg: #f7f7f7;
+      --card: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap {
+      max-width: var(--maxw);
+      margin: 24px auto 40px;
+      padding: 0 16px;
+    }
+    header {
+      text-align: center;
+      padding: 12px 0 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 44px;
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 600;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 18px 0 22px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px;
+    }
+    label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 14px 0 8px;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-left: 10px;
+      text-align: right;
+      max-width: 48%;
+    }
+    input {
+      width: 100%;
+      font-size: 18px;
+      padding: 14px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus {
+      border-color: #8a8a8a;
+    }
+    .btn {
+      margin-top: 18px;
+      width: 100%;
+      padding: 16px 12px;
+      font-size: 18px;
+      font-weight: 800;
+      border: 1px solid #9a9a9a;
+      border-radius: 4px;
+      background: #efefef;
+      cursor: pointer;
+    }
+    .btn:hover { filter: brightness(0.98); }
+    .out {
+      margin-top: 16px;
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 16px;
+      background: #fff;
+      white-space: pre-wrap;
+    }
+    footer {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    footer a { color: #2b5fd9; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <h1>DPS6Check</h1>
+      <div class="subtitle">DPS6 Clutch Health Orientation Tool</div>
+    </header>
+
+    <hr />
+
+    <div class="card">
+      <label>
+        <span>Clutch A Touch / Kiss Point (Learned)</span>
+        <span class="hint">From TCM learned values (car can be stopped)</span>
+      </label>
+      <input id="kissA" inputmode="decimal" placeholder="Example: 9.5" />
+
+      <label>
+        <span>Clutch B Touch / Kiss Point (Learned)</span>
+        <span class="hint">From TCM learned values (car can be stopped)</span>
+      </label>
+      <input id="kissB" inputmode="decimal" placeholder="Example: 9.8" />
+
+      <label>
+        <span>Clutch A Adaptive / Wear (Learned)</span>
+        <span class="hint">Adaptive/Wear learned value</span>
+      </label>
+      <input id="wearA" inputmode="decimal" placeholder="Example: 1.12" />
+
+      <label>
+        <span>Clutch B Adaptive / Wear (Learned)</span>
+        <span class="hint">Adaptive/Wear learned value</span>
+      </label>
+      <input id="wearB" inputmode="decimal" placeholder="Example: 1.35" />
+
+      <button class="btn" id="checkBtn">CHECK STATUS</button>
+
+      <div class="out" id="output" aria-live="polite"></div>
+    </div>
+
+    <footer>
+      <div>This tool provides an orientation only.<br/>It does NOT replace professional diagnosis.</div>
+      <div style="margin-top:10px;">
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+      <div style="margin-top:10px;">DPS6Check.com • v1.1</div>
+    </footer>
+  </div>
+
+  <script>
+    // ===========================
+    // DPS6Check v1.1 — core logic
+    // ===========================
+    // NOTE: thresholds below are conservative defaults.
+    // Adjust them after collecting real-world samples.
+
+    const THRESHOLDS = {
+      // Plausibility ranges (input sanity checks)
+      kissMin: 0,
+      kissMax: 20,
+      wearMin: 0,
+      wearMax: 5,
+
+      // Alerting logic (heuristic)
+      // Large A vs B mismatch can indicate uneven behavior.
+      kissDeltaWarn: 1.2,
+      kissDeltaCrit: 2.0,
+
+      wearDeltaWarn: 0.6,
+      wearDeltaCrit: 1.0,
+
+      // Absolute "wear/adaptive" warning (conservative)
+      wearHighWarn: 2.0,
+      wearHighCrit: 3.0
+    };
+
+    function parseNum(id) {
+      const raw = document.getElementById(id).value.trim().replace(",", ".");
+      if (!raw) return { ok: false, value: null, raw: "" };
+      const v = Number(raw);
+      return { ok: Number.isFinite(v), value: v, raw };
+    }
+
+    function clamp01(x) {
+      return Math.max(0, Math.min(1, x));
+    }
+
+    function format(n) {
+      return (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function classify(kissA, kissB, wearA, wearB) {
+      const kissDelta = Math.abs(kissA - kissB);
+      const wearDelta = Math.abs(wearA - wearB);
+      const wearMax = Math.max(wearA, wearB);
+
+      // Score components 0..1 (0 good, 1 bad)
+      const sKissDelta = clamp01((kissDelta - THRESHOLDS.kissDeltaWarn) / (THRESHOLDS.kissDeltaCrit - THRESHOLDS.kissDeltaWarn));
+      const sWearDelta = clamp01((wearDelta - THRESHOLDS.wearDeltaWarn) / (THRESHOLDS.wearDeltaCrit - THRESHOLDS.wearDeltaWarn));
+      const sWearAbs   = clamp01((wearMax - THRESHOLDS.wearHighWarn) / (THRESHOLDS.wearHighCrit - THRESHOLDS.wearHighWarn));
+
+      // Weighted score (tuneable)
+      const score01 = clamp01((0.45 * sWearAbs) + (0.35 * sWearDelta) + (0.20 * sKissDelta));
+
+      // Status
+      let status = "OK";
+      if (score01 >= 0.70) status = "CRITICAL";
+      else if (score01 >= 0.35) status = "ATTENTION";
+
+      // Messages
+      const notes = [];
+      if (kissDelta >= THRESHOLDS.kissDeltaCrit) notes.push("• Large Kiss Point mismatch between clutches (A vs B).");
+      else if (kissDelta >= THRESHOLDS.kissDeltaWarn) notes.push("• Moderate Kiss Point mismatch between clutches (A vs B).");
+
+      if (wearDelta >= THRESHOLDS.wearDeltaCrit) notes.push("• Large Adaptive/Wear mismatch between clutches (A vs B).");
+      else if (wearDelta >= THRESHOLDS.wearDeltaWarn) notes.push("• Moderate Adaptive/Wear mismatch between clutches (A vs B).");
+
+      if (wearMax >= THRESHOLDS.wearHighCrit) notes.push("• High Adaptive/Wear value detected (conservative threshold).");
+      else if (wearMax >= THRESHOLDS.wearHighWarn) notes.push("• Elevated Adaptive/Wear value detected (conservative threshold).");
+
+      // Output block
+      const scorePct = Math.round(score01 * 100);
+      const summary =
+`STATUS: ${status}
+Confidence Score (heuristic): ${scorePct}/100
+
+Entered values:
+- Kiss A (Learned): ${format(kissA)}
+- Kiss B (Learned): ${format(kissB)}
+- Wear A (Learned): ${format(wearA)}
+- Wear B (Learned): ${format(wearB)}
+
+Observations:
+${notes.length ? notes.join("\n") : "• No relevant flags detected by the current heuristic."}
+
+Reminder:
+- This is an orientation tool, not a diagnosis.
+- Thresholds may vary by vehicle/year/calibration.`;
+
+      return summary;
+    }
+
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      const out = document.getElementById("output");
+
+      const a = parseNum("kissA");
+      const b = parseNum("kissB");
+      const c = parseNum("wearA");
+      const d = parseNum("wearB");
+
+      if (!a.ok || !b.ok || !c.ok || !d.ok) {
+        out.textContent = "Fill all fields with valid numbers (use dot or comma for decimals).";
+        return;
+      }
+
+      // Plausibility checks
+      if (a.value < THRESHOLDS.kissMin || a.value > THRESHOLDS.kissMax ||
+          b.value < THRESHOLDS.kissMin || b.value > THRESHOLDS.kissMax) {
+        out.textContent = `Kiss Point values look out of range. Expected ~${THRESHOLDS.kissMin} to ${THRESHOLDS.kissMax}.`;
+        return;
+      }
+      if (c.value < THRESHOLDS.wearMin || c.value > THRESHOLDS.wearMax ||
+          d.value < THRESHOLDS.wearMin || d.value > THRESHOLDS.wearMax) {
+        out.textContent = `Adaptive/Wear values look out of range. Expected ~${THRESHOLDS.wearMin} to ${THRESHOLDS.wearMax}.`;
+        return;
+      }
+
+      out.textContent = classify(a.value, b.value, c.value, d.value);
+    });
+  </script>
+</body>
+</html>
