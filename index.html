@@ -1,345 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DPS6Check – DPS6 Clutch Health Orientation Tool</title>
+  <meta charset="UTF-8">
+  <title>DPS6Check</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     :root {
-      --maxw: 980px;
-      --border: #cfcfcf;
-      --text: #111;
-      --muted: #666;
-      --bg: #f7f7f7;
-      --card: #fff;
+      --bg: #0f0f0f;
+      --card: #1b1b1b;
+      --text: #f2f2f2;
+      --muted: #9a9a9a;
+      --accent: #e53935;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
       background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-    .wrap {
-      max-width: var(--maxw);
-      margin: 24px auto 40px;
-      padding: 0 16px;
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
     }
-    header {
-      text-align: center;
-      padding: 12px 0 8px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 44px;
-      letter-spacing: 0.5px;
-    }
-    .subtitle {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 16px;
-      font-weight: 600;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 18px 0 22px;
-    }
+
     .card {
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 18px;
+      border-radius: 10px;
+      padding: 24px;
     }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 20px;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
     label {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      font-size: 18px;
-      font-weight: 700;
-      margin: 14px 0 8px;
-    }
-    .hint {
-      font-size: 12px;
+      display: block;
+      margin-top: 16px;
+      font-size: 14px;
       color: var(--muted);
-      font-weight: 600;
-      margin-left: 10px;
-      text-align: right;
-      max-width: 48%;
     }
+
     input {
       width: 100%;
-      font-size: 18px;
-      padding: 14px 12px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      outline: none;
-      background: #fff;
+      margin-top: 6px;
+      padding: 10px;
+      font-size: 16px;
+      background: #000;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 6px;
     }
+
     input:focus {
-      border-color: #8a8a8a;
+      outline: none;
+      border-color: var(--accent);
     }
-    .btn {
-      margin-top: 18px;
+
+    button {
       width: 100%;
-      padding: 16px 12px;
-      font-size: 18px;
-      font-weight: 800;
-      border: 1px solid #9a9a9a;
-      border-radius: 4px;
-      background: #efefef;
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .btn:hover { filter: brightness(0.98); }
-    .out {
-      margin-top: 16px;
-      width: 100%;
-      min-height: 54px;
-      padding: 14px 12px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 16px;
-      background: #fff;
-      white-space: pre-wrap;
+
+    button:hover {
+      opacity: 0.9;
     }
-    footer {
-      text-align: center;
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 13px;
+
+    .result {
+      margin-top: 20px;
+      padding: 14px;
+      background: #000;
+      border-radius: 6px;
+      font-size: 15px;
       line-height: 1.5;
     }
-    footer a { color: #2b5fd9; text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+
+    .diff {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 11px;
+      color: #666;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <h1>DPS6Check</h1>
-      <div class="subtitle">Educational tool for understanding DPS6 clutch behavior using learned TCM data</div>
-    </header>
 
-    <hr />
-<div class="card" style="margin-bottom:20px;">
-  <h2 style="margin-top:0;">What is DPS6Check?</h2>
+<div class="container">
+  <div class="card">
 
-  <p>
-    DPS6Check is an educational orientation tool designed to help owners of Ford vehicles equipped with the DPS6
-    dual-clutch transmission better understand the behavior of their clutch system using learned data provided by the TCM
-    (Transmission Control Module).
-  </p>
+    <h1>DPS6Check</h1>
 
-  <p>
-    The DPS6 transmission does not expose a direct or absolute measurement of clutch wear.
-    Instead, it continuously adapts its behavior based on learned parameters such as clutch touch (kiss) points
-    and adaptive compensation values.
-    When analyzed together, these parameters can reveal trends, imbalances, or unusual patterns over time.
-  </p>
+    <label for="a_ltp">CLUTCH_A_LTP (mm)</label>
+    <input type="number" step="0.01" id="a_ltp" placeholder="ex: 10.5">
 
-  <h3>What this calculator does</h3>
-  <ul>
-    <li>Analyzes learned clutch values already stored in the TCM</li>
-    <li>Compares Clutch A and Clutch B behavior to identify asymmetries</li>
-    <li>Provides a conservative, heuristic-based orientation score</li>
-    <li>Helps owners track changes over time when measurements are repeated</li>
-  </ul>
+    <label for="b_ltp">CLUTCH_B_LTP (mm)</label>
+    <input type="number" step="0.01" id="b_ltp" placeholder="ex: 13.0">
 
-  <h3>What this calculator does NOT do</h3>
-  <ul>
-    <li>It does NOT measure physical clutch thickness or remaining life</li>
-    <li>It does NOT replace professional diagnosis or workshop inspection</li>
-    <li>It does NOT predict failures or guarantee component condition</li>
-    <li>It should NOT be used as the sole basis for repair decisions</li>
-  </ul>
+    <button onclick="calculate()">CHECK</button>
 
-  <h3>How to use DPS6Check</h3>
-  <p>
-    Read the required values using a diagnostic tool capable of accessing TCM learned parameters
-    (such as FORScan). The vehicle may be stopped, as only learned values are required.
-    Enter the four values exactly as reported and click <strong>CHECK STATUS</strong>.
-  </p>
+    <div class="result" id="result" style="display:none;"></div>
 
-  <p>
-    For best results, record values periodically and observe how they evolve rather than relying on a single snapshot.
-  </p>
+  </div>
 
-  <p style="font-size:13px;color:#666;">
-    Disclaimer: DPS6Check is provided for educational purposes only.
-    Results are heuristic and conservative by design.
-    Vehicle behavior, calibration differences, driving style, and maintenance history may significantly affect values.
-  </p>
+  <div class="footer">
+    DPS6Check
+  </div>
 </div>
 
-    <div class="card">
-      <label>
-        <span>Clutch A Touch / Kiss Point (Learned)</span>
-        <span class="hint">From TCM learned values (car can be stopped)</span>
-      </label>
-      <input id="kissA" inputmode="decimal" placeholder="Example: 9.5" />
+<script>
+  function calculate() {
+    const a = parseFloat(document.getElementById('a_ltp').value);
+    const b = parseFloat(document.getElementById('b_ltp').value);
+    const resultBox = document.getElementById('result');
 
-      <label>
-        <span>Clutch B Touch / Kiss Point (Learned)</span>
-        <span class="hint">From TCM learned values (car can be stopped)</span>
-      </label>
-      <input id="kissB" inputmode="decimal" placeholder="Example: 9.8" />
-
-      <label>
-        <span>Clutch A Adaptive / Wear (Learned)</span>
-        <span class="hint">Adaptive/Wear learned value</span>
-      </label>
-      <input id="wearA" inputmode="decimal" placeholder="Example: 1.12" />
-
-      <label>
-        <span>Clutch B Adaptive / Wear (Learned)</span>
-        <span class="hint">Adaptive/Wear learned value</span>
-      </label>
-      <input id="wearB" inputmode="decimal" placeholder="Example: 1.35" />
-
-      <button class="btn" id="checkBtn">CHECK STATUS</button>
-
-      <div class="out" id="output" aria-live="polite"></div>
-    </div>
-
-   <footer>
-  <div>
-    This tool provides orientation only. It does NOT replace professional diagnosis.
-  </div>
-
-  <div style="margin-top:10px;">
-    <a href="about.html">About</a> |
-    <a href="privacy.html">Privacy Policy</a> |
-    <a href="terms.html">Terms</a> |
-    <a href="contact.html">Contact</a>
-  </div>
-
-  <div style="margin-top:10px;">
-    DPS6Check.com • v1.12
-  </div>
-</footer>
-  </div>
-
-  <script>
-    // ===========================
-    // DPS6Check v1.11 — core logic
-    // ===========================
-    // NOTE: thresholds below are conservative defaults.
-    // Adjust them after collecting real-world samples.
-
-    const THRESHOLDS = {
-      // Plausibility ranges (input sanity checks)
-      kissMin: 0,
-      kissMax: 20,
-      wearMin: 0,
-      wearMax: 5,
-
-      // Alerting logic (heuristic)
-      // Large A vs B mismatch can indicate uneven behavior.
-      kissDeltaWarn: 1.2,
-      kissDeltaCrit: 2.0,
-
-      wearDeltaWarn: 0.6,
-      wearDeltaCrit: 1.0,
-
-      // Absolute "wear/adaptive" warning (conservative)
-      wearHighWarn: 2.0,
-      wearHighCrit: 3.0
-    };
-
-    function parseNum(id) {
-      const raw = document.getElementById(id).value.trim().replace(",", ".");
-      if (!raw) return { ok: false, value: null, raw: "" };
-      const v = Number(raw);
-      return { ok: Number.isFinite(v), value: v, raw };
+    if (isNaN(a) || isNaN(b)) {
+      resultBox.style.display = 'block';
+      resultBox.innerHTML = 'Preencha os dois valores.';
+      return;
     }
 
-    function clamp01(x) {
-      return Math.max(0, Math.min(1, x));
+    const diff = Math.abs(a - b).toFixed(2);
+
+    let msg = '';
+    if (diff < 0.5) {
+      msg = 'Comportamento semelhante entre embreagens.';
+    } else if (diff < 1.5) {
+      msg = 'Assimetria moderada entre embreagens.';
+    } else {
+      msg = 'Assimetria elevada entre embreagens.';
     }
 
-    function format(n) {
-      return (Math.round(n * 100) / 100).toFixed(2);
-    }
-
-    function classify(kissA, kissB, wearA, wearB) {
-      const kissDelta = Math.abs(kissA - kissB);
-      const wearDelta = Math.abs(wearA - wearB);
-      const wearMax = Math.max(wearA, wearB);
-
-      // Score components 0..1 (0 good, 1 bad)
-      const sKissDelta = clamp01((kissDelta - THRESHOLDS.kissDeltaWarn) / (THRESHOLDS.kissDeltaCrit - THRESHOLDS.kissDeltaWarn));
-      const sWearDelta = clamp01((wearDelta - THRESHOLDS.wearDeltaWarn) / (THRESHOLDS.wearDeltaCrit - THRESHOLDS.wearDeltaWarn));
-      const sWearAbs   = clamp01((wearMax - THRESHOLDS.wearHighWarn) / (THRESHOLDS.wearHighCrit - THRESHOLDS.wearHighWarn));
-
-      // Weighted score (tuneable)
-      const score01 = clamp01((0.45 * sWearAbs) + (0.35 * sWearDelta) + (0.20 * sKissDelta));
-
-      // Status
-      let status = "OK";
-      if (score01 >= 0.70) status = "CRITICAL";
-      else if (score01 >= 0.35) status = "ATTENTION";
-
-      // Messages
-      const notes = [];
-      if (kissDelta >= THRESHOLDS.kissDeltaCrit) notes.push("• Large Kiss Point mismatch between clutches (A vs B).");
-      else if (kissDelta >= THRESHOLDS.kissDeltaWarn) notes.push("• Moderate Kiss Point mismatch between clutches (A vs B).");
-
-      if (wearDelta >= THRESHOLDS.wearDeltaCrit) notes.push("• Large Adaptive/Wear mismatch between clutches (A vs B).");
-      else if (wearDelta >= THRESHOLDS.wearDeltaWarn) notes.push("• Moderate Adaptive/Wear mismatch between clutches (A vs B).");
-
-      if (wearMax >= THRESHOLDS.wearHighCrit) notes.push("• High Adaptive/Wear value detected (conservative threshold).");
-      else if (wearMax >= THRESHOLDS.wearHighWarn) notes.push("• Elevated Adaptive/Wear value detected (conservative threshold).");
-
-      // Output block
-      const scorePct = Math.round(score01 * 100);
-      const summary =
-`STATUS: ${status}
-Confidence Score (heuristic): ${scorePct}/100
-
-Entered values:
-- Kiss A (Learned): ${format(kissA)}
-- Kiss B (Learned): ${format(kissB)}
-- Wear A (Learned): ${format(wearA)}
-- Wear B (Learned): ${format(wearB)}
-
-Observations:
-${notes.length ? notes.join("\n") : "• No relevant flags detected by the current heuristic."}
-
-Reminder:
-- This is an orientation tool, not a diagnosis.
-- Thresholds may vary by vehicle/year/calibration.`;
-
-      return summary;
-    }
-
-    document.getElementById("checkBtn").addEventListener("click", () => {
-      const out = document.getElementById("output");
-
-      const a = parseNum("kissA");
-      const b = parseNum("kissB");
-      const c = parseNum("wearA");
-      const d = parseNum("wearB");
-
-      if (!a.ok || !b.ok || !c.ok || !d.ok) {
-        out.textContent = "Fill all fields with valid numbers (use dot or comma for decimals).";
-        return;
-      }
-
-      // Plausibility checks
-      if (a.value < THRESHOLDS.kissMin || a.value > THRESHOLDS.kissMax ||
-          b.value < THRESHOLDS.kissMin || b.value > THRESHOLDS.kissMax) {
-        out.textContent = `Kiss Point values look out of range. Expected ~${THRESHOLDS.kissMin} to ${THRESHOLDS.kissMax}.`;
-        return;
-      }
-      if (c.value < THRESHOLDS.wearMin || c.value > THRESHOLDS.wearMax ||
-          d.value < THRESHOLDS.wearMin || d.value > THRESHOLDS.wearMax) {
-        out.textContent = `Adaptive/Wear values look out of range. Expected ~${THRESHOLDS.wearMin} to ${THRESHOLDS.wearMax}.`;
-        return;
-      }
-
-      out.textContent = classify(a.value, b.value, c.value, d.value);
-    });
-  </script>
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = `
+      <div class="diff">Δ A ↔ B = ${diff} mm</div>
+      ${msg}
+    `;
+  }
+</script>
+<div class="footer">
+  DPS6Check · v1.2
+</div>
 </body>
 </html>
